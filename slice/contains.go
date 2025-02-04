@@ -23,3 +23,13 @@ func ContainsAll[T comparable](haystack []T, needles []T) bool {
 	}
 	return true
 }
+
+// ContainsNone returns true if no needles are present in the haystack.
+func ContainsNone[T comparable](haystack []T, needles []T) bool {
+	for _, needle := range needles {
+		if slices.Contains(haystack, needle) {
+			return false
+		}
+	}
+	return true
+}
