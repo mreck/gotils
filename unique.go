@@ -1,12 +1,12 @@
-package slice
+package gotils
 
 import (
 	"cmp"
 	"slices"
 )
 
-// Unique returns a new slice containing the first appearance of each value.
-func Unique[T comparable](array []T) []T {
+// CreateUniqueSlice returns a new slice containing the first appearance of each value.
+func CreateUniqueSlice[T comparable](array []T) []T {
 	found := map[T]struct{}{}
 	result := make([]T, 0, len(array))
 
@@ -20,9 +20,9 @@ func Unique[T comparable](array []T) []T {
 	return result
 }
 
-// SortedUnique returns a new slice containing the first appearance of each value.
+// CreateUniqueSliceFromSorted returns a new slice containing the first appearance of each value.
 // Only works for sorted slices.
-func SortedUnique[T comparable](array []T) []T {
+func CreateUniqueSliceFromSorted[T comparable](array []T) []T {
 	result := make([]T, 0, len(array))
 
 	if len(array) > 0 {
@@ -41,9 +41,9 @@ func SortedUnique[T comparable](array []T) []T {
 	return result
 }
 
-// SortAndMakeUnique returns a new slice with sorted unique values.
-func SortAndMakeUnique[T cmp.Ordered](array []T) []T {
-	result := Clone(array)
+// SortAndMakeSliceUnique returns a new slice with sorted unique values.
+func SortAndMakeSliceUnique[T cmp.Ordered](array []T) []T {
+	result := CloneSlice(array)
 	slices.Sort(result)
 
 	j := 0

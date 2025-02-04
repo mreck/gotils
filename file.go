@@ -1,12 +1,12 @@
-package fsys
+package gotils
 
 import (
 	"errors"
 	"os"
 )
 
-// Exists check if a file or directory exists
-func Exists(filename string) (bool, error) {
+// FilePathExists check if a file (or directory) exists
+func FilePathExists(filename string) (bool, error) {
 	_, err := os.Stat(filename)
 	if err == nil {
 		return true, nil

@@ -1,4 +1,4 @@
-package fsys
+package gotils
 
 import (
 	"encoding/json"
