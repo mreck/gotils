@@ -11,6 +11,17 @@ func Map[T any, R any](array []T, fn func(T) R) []R {
 	return result
 }
 
+// Reduce returns the reduced value.
+func Reduce[T any, R any](array []T, initial R, fn func(R, T) R) R {
+	result := initial
+
+	for _, v := range array {
+		result = fn(result, v)
+	}
+
+	return result
+}
+
 // Clone returns a new slice with the same values.
 func Clone[T any](array []T) []T {
 	result := make([]T, 0, len(array))
