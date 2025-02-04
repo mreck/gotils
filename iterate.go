@@ -11,6 +11,15 @@ func MapSlice[T any, R any](array []T, fn func(T) R) []R {
 	return result
 }
 
+// ApplyToSlice applies all functions to the slice
+func ApplyToSlice[T any](array []T, funcs ...func(T) T) {
+	for _, fn := range funcs {
+		for i, val := range array {
+			array[i] = fn(val)
+		}
+	}
+}
+
 // ReduceSlice returns the reduced value.
 func ReduceSlice[T any, R any](array []T, initial R, fn func(R, T) R) R {
 	result := initial

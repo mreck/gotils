@@ -17,6 +17,15 @@ func TestMapSlice(t *testing.T) {
 	}), []string{"1", "2", "3", "4"})
 }
 
+func TestApplyToSlice(t *testing.T) {
+	data := []int{1, 2, 3, 4}
+	ApplyToSlice(
+		data,
+		func(n int) int { return n + 1 },
+		func(n int) int { return n * n })
+	assert.Equal(t, data, []int{4, 9, 16, 25})
+}
+
 func TestReduceSlice(t *testing.T) {
 	assert.Equal(t, ReduceSlice([]int{1, 2, 3, 4}, 0, func(acc int, n int) int {
 		return acc + n
