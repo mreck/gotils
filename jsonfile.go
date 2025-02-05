@@ -29,7 +29,7 @@ func WriteJSONFile(filename string, indent string, data any, perm ...fs.FileMode
 		actualPerm = perm[0]
 	}
 
-	fp, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, actualPerm)
+	fp, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, actualPerm)
 	if err != nil {
 		return fmt.Errorf("opening file failed: %w", err)
 	}
