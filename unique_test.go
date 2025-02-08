@@ -24,7 +24,6 @@ func TestMakeSliceUnique(t *testing.T) {
 	d = []int{3, 2, 1, 3, 2, 1}
 	MakeSliceUnique(&d)
 	assert.Equal(t, []int{3, 2, 1}, d)
-
 }
 
 func TestMakeSortedSliceUnique(t *testing.T) {

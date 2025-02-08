@@ -7,7 +7,6 @@ linters:
     - errorlint
     - exhaustive
     - fatcontext
-    - gci
     - gofmt
     - goimports
     - gosimple
