@@ -6,18 +6,39 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateUniqueSlice(t *testing.T) {
-	assert.Equal(t, CreateUniqueSlice([]int{1, 2, 3, 2}), []int{1, 2, 3})
-	assert.Equal(t, CreateUniqueSlice([]int{1, 2, 3, 1, 2, 3}), []int{1, 2, 3})
-	assert.Equal(t, CreateUniqueSlice([]int{3, 2, 1, 3, 2, 1}), []int{3, 2, 1})
+func TestMakeSliceUnique(t *testing.T) {
+	var d []int
+
+	d = []int{1, 2, 3}
+	MakeSliceUnique(&d)
+	assert.Equal(t, []int{1, 2, 3}, d)
+
+	d = []int{1, 2, 3, 2}
+	MakeSliceUnique(&d)
+	assert.Equal(t, []int{1, 2, 3}, d)
+
+	d = []int{1, 2, 3, 1, 2, 3}
+	MakeSliceUnique(&d)
+	assert.Equal(t, []int{1, 2, 3}, d)
+
+	d = []int{3, 2, 1, 3, 2, 1}
+	MakeSliceUnique(&d)
+	assert.Equal(t, []int{3, 2, 1}, d)
+
 }
 
-func TestCreateUniqueSliceFromSorted(t *testing.T) {
-	assert.Equal(t, CreateUniqueSliceFromSorted([]int{1, 2, 2, 3}), []int{1, 2, 3})
-	assert.Equal(t, CreateUniqueSliceFromSorted([]int{1, 2, 2, 3, 2, 2}), []int{1, 2, 3, 2})
-}
+func TestMakeSortedSliceUnique(t *testing.T) {
+	var d []int
 
-func TestSortAndMakeSliceUnique(t *testing.T) {
-	assert.Equal(t, SortAndMakeSliceUnique([]int{1, 2, 2, 3}), []int{1, 2, 3})
-	assert.Equal(t, SortAndMakeSliceUnique([]int{1, 2, 2, 3, 2, 2}), []int{1, 2, 3})
+	d = []int{1, 2, 3}
+	MakeSortedSliceUnique(&d)
+	assert.Equal(t, []int{1, 2, 3}, d)
+
+	d = []int{1, 2, 2, 3}
+	MakeSortedSliceUnique(&d)
+	assert.Equal(t, []int{1, 2, 3}, d)
+
+	d = []int{1, 2, 2, 3, 2, 2}
+	MakeSortedSliceUnique(&d)
+	assert.Equal(t, []int{1, 2, 3, 2}, d)
 }
