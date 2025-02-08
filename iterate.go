@@ -37,3 +37,26 @@ func CloneSlice[T any](array []T) []T {
 	result = append(result, array...)
 	return result
 }
+
+// Zip combines two slices.
+// If one slice has more values than the other, the remaining values are ignored.
+func Zip[T1 any, T2 any](a []T1, b []T2) []struct {
+	A T1
+	B T2
+} {
+	var result []struct {
+		A T1
+		B T2
+	}
+
+	l := Min(len(a), len(b))
+
+	for i := 0; i < l; i++ {
+		result = append(result, struct {
+			A T1
+			B T2
+		}{a[i], b[i]})
+	}
+
+	return result
+}
