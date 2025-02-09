@@ -40,8 +40,11 @@ func CloneSlice[T any](array []T) []T {
 
 // FilterSlice removes all items from the slice that don't match the filter.
 func FilterSlice[T any](array *[]T, filter func(T) bool) {
-	next := 0
+	if len(*array) == 0 {
+		return
+	}
 
+	next := 0
 	for i := 0; i < len(*array); i++ {
 		v := (*array)[i]
 		if filter(v) {

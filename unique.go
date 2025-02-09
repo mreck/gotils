@@ -19,7 +19,7 @@ func MakeSliceUnique[T comparable](array *[]T) {
 		}
 	}
 
-	*array = (*array)[0:next]
+	*array = (*array)[:next]
 }
 
 // MakeSliceUniqueFunc removes all but the first appearance of each value.
@@ -43,7 +43,7 @@ func MakeSliceUniqueFunc[T any](array *[]T, hasher func(v T) string) {
 		}
 	}
 
-	*array = (*array)[0:next]
+	*array = (*array)[:next]
 }
 
 // MakeSortedSliceUnique removes all but the first appearance of each value for pre-sorted slices.
@@ -62,7 +62,7 @@ func MakeSortedSliceUnique[T comparable](array *[]T) {
 		}
 	}
 
-	*array = (*array)[0:next]
+	*array = (*array)[:next]
 }
 
 // MakeSortedSliceUnique removes all but the first appearance of each value for pre-sorted slices.
@@ -82,5 +82,5 @@ func MakeSortedSliceUniqueFunc[T any](array *[]T, equal func(a, b T) bool) {
 		}
 	}
 
-	*array = (*array)[0:next]
+	*array = (*array)[:next]
 }
