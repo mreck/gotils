@@ -43,3 +43,15 @@ func TestCloneSlice(t *testing.T) {
 	assert.Equal(t, initial, cloned)
 	assert.False(t, &initial == &cloned)
 }
+
+func TestFilterSlice(t *testing.T) {
+	var d []int
+
+	d = []int{1, 2, 3, 4, 5, 6}
+	FilterSlice(&d, func(n int) bool { return (n % 2) == 0 })
+	assert.Equal(t, []int{2, 4, 6}, d)
+
+	d = []int{1, 2, 3, 4, 5, 6}
+	FilterSlice(&d, func(n int) bool { return n >= 4 })
+	assert.Equal(t, []int{4, 5, 6}, d)
+}

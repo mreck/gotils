@@ -14,7 +14,7 @@ func MakeSliceUnique[T comparable](array *[]T) {
 		v := (*array)[i]
 		if _, ok := seen[v]; !ok {
 			(*array)[next] = v
-			next = next + 1
+			next++
 			seen[v] = struct{}{}
 		}
 	}
@@ -38,7 +38,7 @@ func MakeSliceUniqueFunc[T any](array *[]T, hasher func(v T) string) {
 		h := hasher(v)
 		if _, ok := seen[h]; !ok {
 			(*array)[next] = v
-			next = next + 1
+			next++
 			seen[h] = struct{}{}
 		}
 	}
@@ -58,7 +58,7 @@ func MakeSortedSliceUnique[T comparable](array *[]T) {
 		p := (*array)[next-1]
 		if v != p {
 			(*array)[next] = v
-			next = next + 1
+			next++
 		}
 	}
 
@@ -78,7 +78,7 @@ func MakeSortedSliceUniqueFunc[T any](array *[]T, equal func(a, b T) bool) {
 		p := (*array)[next-1]
 		if !equal(v, p) {
 			(*array)[next] = v
-			next = next + 1
+			next++
 		}
 	}
 
