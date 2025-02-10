@@ -15,13 +15,13 @@ func ParellelFor[T any](ctx context.Context, values []T, threads int, fn func(co
 	valC := make(chan dataT)
 	errC := make(chan error)
 
-	var wg sync.WaitGroup
+	var wgData sync.WaitGroup
 
 	for i := 0; i < threads; i++ {
-		wg.Add(1)
+		wgData.Add(1)
 
 		go func() {
-			defer wg.Done()
+			defer wgData.Done()
 
 			for {
 				select {
@@ -41,11 +41,11 @@ func ParellelFor[T any](ctx context.Context, values []T, threads int, fn func(co
 	}
 
 	var errs []error
-	var errWg sync.WaitGroup
+	var wgErr sync.WaitGroup
 
-	errWg.Add(1)
+	wgErr.Add(1)
 	go func() {
-		defer errWg.Done()
+		defer wgErr.Done()
 		for {
 			err, ok := <-errC
 			if !ok {
@@ -63,9 +63,10 @@ func ParellelFor[T any](ctx context.Context, values []T, threads int, fn func(co
 	}
 
 	close(valC)
-	wg.Wait()
+	wgData.Wait()
+
 	close(errC)
-	errWg.Wait()
+	wgErr.Wait()
 
 	return errs
 }
@@ -86,13 +87,13 @@ func ParellelMap[T any, R any](ctx context.Context, values []T, threads int, fn 
 	valC := make(chan dataT)
 	resC := make(chan resultT)
 
-	var wg sync.WaitGroup
+	var wgData sync.WaitGroup
 
 	for i := 0; i < threads; i++ {
-		wg.Add(1)
+		wgData.Add(1)
 
 		go func() {
-			defer wg.Done()
+			defer wgData.Done()
 
 			for {
 				select {
@@ -111,8 +112,12 @@ func ParellelMap[T any, R any](ctx context.Context, values []T, threads int, fn 
 
 	result := make([]R, len(values))
 	var errs []error
+	var wgRes sync.WaitGroup
 
+	wgRes.Add(1)
 	go func() {
+		defer wgRes.Done()
+
 		for {
 			select {
 			case <-ctx.Done():
@@ -135,8 +140,10 @@ func ParellelMap[T any, R any](ctx context.Context, values []T, threads int, fn 
 	}
 
 	close(valC)
-	wg.Wait()
+	wgData.Wait()
+
 	close(resC)
+	wgRes.Wait()
 
 	return result, errs
 }

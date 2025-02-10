@@ -1,4 +1,4 @@
-package gotils
+package gotils_test
 
 import (
 	"errors"
@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/mreck/gotils"
 )
 
 func TestReadJSONFile(t *testing.T) {
@@ -13,17 +15,17 @@ func TestReadJSONFile(t *testing.T) {
 	var dStr []string
 	var err error
 
-	err = ReadJSONFile("test.json", &dInt)
+	err = gotils.ReadJSONFile("test.json", &dInt)
 	assert.Nil(t, err)
 	assert.Equal(t, []int{1, 2, 3, 4, 5}, dInt)
 
-	err = ReadJSONFile("test_123.json", &dInt)
+	err = gotils.ReadJSONFile("test_123.json", &dInt)
 	assert.NotNil(t, err)
-	assert.True(t, errors.Is(err, ErrOpeningFile))
+	assert.True(t, errors.Is(err, gotils.ErrOpeningFile))
 
-	err = ReadJSONFile("test.json", &dStr)
+	err = gotils.ReadJSONFile("test.json", &dStr)
 	assert.NotNil(t, err)
-	assert.True(t, errors.Is(err, ErrDecodingFile))
+	assert.True(t, errors.Is(err, gotils.ErrDecodingFile))
 }
 
 func TestWriteJSONFile(t *testing.T) {
@@ -32,13 +34,13 @@ func TestWriteJSONFile(t *testing.T) {
 
 	fn := "tmp.json"
 
-	err = WriteJSONFile(fn, "", []int{1, 2, 3})
+	err = gotils.WriteJSONFile(fn, "", []int{1, 2, 3})
 	assert.Nil(t, err)
 	b, err = os.ReadFile(fn)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte("[1,2,3]\n"), b)
 
-	err = WriteJSONFile(fn, "\t", []int{1, 2, 3})
+	err = gotils.WriteJSONFile(fn, "\t", []int{1, 2, 3})
 	assert.Nil(t, err)
 	b, err = os.ReadFile(fn)
 	assert.Nil(t, err)
