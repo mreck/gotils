@@ -7,7 +7,7 @@ import (
 // Counter is a thread safe way to count comparable things.
 type Counter[T comparable] struct {
 	values map[T]uint
-	m      sync.Mutex
+	m      sync.RWMutex
 }
 
 // NewCounter creates a new Counter.
@@ -35,11 +35,27 @@ func (c *Counter[T]) AddKey(key T) {
 
 // KeyExists checks if a key exists.
 func (c *Counter[T]) KeyExists(key T) bool {
-	c.m.Lock()
-	defer c.m.Unlock()
+	c.m.RLock()
+	defer c.m.RUnlock()
 
 	_, ok := c.values[key]
 	return ok
+}
+
+// KeyExistsFunc iterates over all existing keys.
+// If the func returns true, the iteration is stopped and true is returned,
+// otherwise the function returns false.
+func (c *Counter[T]) KeyExistsFunc(fn func(key T) bool) bool {
+	c.m.RLock()
+	defer c.m.RUnlock()
+
+	for k := range c.values {
+		if fn(k) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // Increment adds 1 to the count. If the key doesn't exist, it's created.
@@ -84,10 +100,48 @@ func (c *Counter[T]) IncrementByIfKeyExists(key T, value uint) bool {
 	return false
 }
 
-// Values returns the map of counts
-func (c *Counter[T]) Values() map[T]uint {
+// IncrementFunc iterates over all existing keys.
+// If the fn returned uint is greater than zero, the key will be incremented.
+// If the fn returned bool is false, the iteration is stopped.
+// It returns true if any key was incremented
+func (c *Counter[T]) IncrementFunc(fn func(key T, cnt uint) (uint, bool)) bool {
+	var inc bool
+
 	c.m.Lock()
 	defer c.m.Unlock()
+
+	for key, cnt := range c.values {
+		n, ok := fn(key, cnt)
+		if n > 0 {
+			c.values[key] += n
+			inc = true
+		}
+		if !ok {
+			break
+		}
+	}
+
+	return inc
+}
+
+// Values returns the map of counts
+func (c *Counter[T]) Keys() []T {
+	c.m.RLock()
+	defer c.m.RUnlock()
+
+	var keys []T
+
+	for k := range c.values {
+		keys = append(keys, k)
+	}
+
+	return keys
+}
+
+// Values returns the map of counts
+func (c *Counter[T]) Values() map[T]uint {
+	c.m.RLock()
+	defer c.m.RUnlock()
 
 	return c.values
 }

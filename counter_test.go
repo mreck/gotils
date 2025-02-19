@@ -1,6 +1,7 @@
 package gotils
 
 import (
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -32,6 +33,14 @@ func TestKeyExists(t *testing.T) {
 	assert.True(t, c.KeyExists("foo"))
 	assert.True(t, c.KeyExists("bar"))
 	assert.False(t, c.KeyExists("baz"))
+}
+
+func TestKeyExistsFunc(t *testing.T) {
+	c := NewCounter([]string{"foo", "bar"})
+
+	assert.True(t, c.KeyExistsFunc(func(key string) bool { return key == "foo" }))
+	assert.True(t, c.KeyExistsFunc(func(key string) bool { return key == "bar" }))
+	assert.False(t, c.KeyExistsFunc(func(key string) bool { return key == "baz" }))
 }
 
 func TestIncrement(t *testing.T) {
@@ -100,6 +109,34 @@ func TestIncremenBytIfKeyExists(t *testing.T) {
 	assert.Equal(t, c, &Counter[string]{
 		values: map[string]uint{"foo": 5},
 	})
+}
+
+func TestIncrementFunc(t *testing.T) {
+	c := NewCounter([]string{"foo", "bar"})
+
+	assert.True(t, c.IncrementFunc(func(key string, cnt uint) (uint, bool) {
+		if key == "foo" {
+			return 1, true
+		}
+		return 0, true
+	}))
+
+	assert.True(t, c.IncrementFunc(func(key string, cnt uint) (uint, bool) {
+		if key == "bar" {
+			return 2, false
+		}
+		return 0, true
+	}))
+
+	assert.Equal(t, c.values, map[string]uint{"foo": 1, "bar": 2})
+}
+
+func TestKeys(t *testing.T) {
+	c := NewCounter([]string{"foo", "bar"})
+
+	keys := c.Keys()
+	sort.Strings(keys)
+	assert.Equal(t, keys, []string{"bar", "foo"})
 }
 
 func TestValues(t *testing.T) {
