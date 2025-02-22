@@ -58,6 +58,14 @@ func (c *Counter[T]) KeyExistsFunc(fn func(key T) bool) bool {
 	return false
 }
 
+// Set directly sets the count.
+func (c *Counter[T]) Set(key T, cnt uint) {
+	c.m.Lock()
+	defer c.m.Unlock()
+
+	c.values[key] = cnt
+}
+
 // Increment adds 1 to the count. If the key doesn't exist, it's created.
 func (c *Counter[T]) Increment(key T) {
 	c.m.Lock()

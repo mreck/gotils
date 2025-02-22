@@ -43,6 +43,16 @@ func TestKeyExistsFunc(t *testing.T) {
 	assert.False(t, c.KeyExistsFunc(func(key string) bool { return key == "baz" }))
 }
 
+func TestSet(t *testing.T) {
+	c := NewCounter([]string{"foo", "bar"})
+	c.Set("foo", 2)
+	c.Set("bar", 3)
+
+	assert.Equal(t, c, &Counter[string]{
+		values: map[string]uint{"foo": 2, "bar": 3},
+	})
+}
+
 func TestIncrement(t *testing.T) {
 	c := NewCounter([]string{"foo", "bar"})
 
