@@ -29,3 +29,12 @@ func TestCopyMap(t *testing.T) {
 	m1[1] = 7
 	assert.Equal(t, 2, m2[1])
 }
+
+func TestExtendMap(t *testing.T) {
+	dst := map[int]int{1: 2}
+	src1 := map[int]int{3: 4, 5: 6}
+	src2 := map[int]int{5: 0, 7: 8}
+
+	gotils.ExtendMap(dst, src1, src2)
+	assert.Equal(t, map[int]int{1: 2, 3: 4, 5: 0, 7: 8}, dst)
+}
