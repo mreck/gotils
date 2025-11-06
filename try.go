@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
+// Try reruns the function until it succeeds or runs out of attempts
 func Try(noAttempts int, waitDuration time.Duration, f func(attempt int) error) error {
 	var err error
 

@@ -4,6 +4,7 @@ import (
 	"context"
 )
 
+// CollectChannelMessages pulls all messages from the channel, until the channel is closed or the context runs out
 func CollectChannelMessages[T any](ctx context.Context, c chan T) ([]T, error) {
 	var msgs []T
 	var stop bool

@@ -6,7 +6,7 @@ import (
 )
 
 // ParellelFor iterates over the slice in parallel using Goroutines.
-func ParellelFor[T any](ctx context.Context, values []T, threads int, fn func(context.Context, int, T) error) []error {
+func ParellelFor[T any](ctx context.Context, values []T, coroutines int, fn func(context.Context, int, T) error) []error {
 	type dataT struct {
 		idx int
 		val T
@@ -17,7 +17,7 @@ func ParellelFor[T any](ctx context.Context, values []T, threads int, fn func(co
 
 	var wgData sync.WaitGroup
 
-	for i := 0; i < threads; i++ {
+	for range coroutines {
 		wgData.Add(1)
 
 		go func() {
@@ -26,6 +26,7 @@ func ParellelFor[T any](ctx context.Context, values []T, threads int, fn func(co
 			for {
 				select {
 				case <-ctx.Done():
+					errC <- ctx.Err()
 					return
 				case msg, ok := <-valC:
 					if !ok {
@@ -72,7 +73,7 @@ func ParellelFor[T any](ctx context.Context, values []T, threads int, fn func(co
 }
 
 // ParellelMap maps over the slice in parallel using Goroutines.
-func ParellelMap[T any, R any](ctx context.Context, values []T, threads int, fn func(context.Context, int, T) (R, error)) ([]R, []error) {
+func ParellelMap[T any, R any](ctx context.Context, values []T, coroutines int, fn func(context.Context, int, T) (R, error)) ([]R, []error) {
 	type dataT struct {
 		idx int
 		val T
@@ -89,7 +90,7 @@ func ParellelMap[T any, R any](ctx context.Context, values []T, threads int, fn 
 
 	var wgData sync.WaitGroup
 
-	for i := 0; i < threads; i++ {
+	for range coroutines {
 		wgData.Add(1)
 
 		go func() {
@@ -98,6 +99,7 @@ func ParellelMap[T any, R any](ctx context.Context, values []T, threads int, fn 
 			for {
 				select {
 				case <-ctx.Done():
+					// @TODO: handle properly
 					return
 				case msg, ok := <-valC:
 					if !ok {
