@@ -18,69 +18,145 @@ var (
 )
 
 func TestParallelFor(t *testing.T) {
-	var out []int
-	var errs []error
-	var m sync.Mutex
+	var (
+		out []int
+		m   sync.Mutex
+	)
 
-	in := []int{1, 2, 3, 4, 5, 6}
-	ctx := context.Background()
+	canceled, cancel := context.WithCancel(context.Background())
+	cancel()
 
-	errs = gotils.ParellelFor(ctx, in, 4, func(ctx context.Context, i int, n int) error {
-		m.Lock()
-		defer m.Unlock()
-		out = append(out, n+1)
-		return nil
-	})
+	testCases := []struct {
+		ctx          context.Context
+		fn           func(ctx context.Context, i int, n int) error
+		expectedOut  []int
+		expectedErrs []error
+	}{
+		{
+			ctx: context.Background(),
+			fn: func(ctx context.Context, i int, n int) error {
+				m.Lock()
+				defer m.Unlock()
+				out = append(out, n+1)
+				return nil
+			},
+			expectedOut:  []int{2, 3, 4, 5, 6, 7},
+			expectedErrs: nil,
+		},
+		{
+			ctx: context.Background(),
+			fn: func(ctx context.Context, i int, n int) error {
+				if n%2 == 0 {
+					return ErrParallelTest
+				}
+				m.Lock()
+				defer m.Unlock()
+				out = append(out, n+1)
+				return nil
+			},
+			expectedOut: []int{2, 4, 6},
+			expectedErrs: []error{
+				ErrParallelTest,
+				ErrParallelTest,
+				ErrParallelTest,
+			},
+		},
+		{
+			ctx: canceled,
+			fn: func(ctx context.Context, i int, n int) error {
+				m.Lock()
+				defer m.Unlock()
+				out = append(out, n+1)
+				return nil
+			},
+			expectedOut: []int(nil),
+			expectedErrs: []error{
+				context.Canceled,
+				context.Canceled,
+				context.Canceled,
+				context.Canceled,
+				context.Canceled,
+				context.Canceled,
+			},
+		},
+	}
 
-	sort.Ints(out)
-	assert.Nil(t, errs)
-	assert.Equal(t, []int{2, 3, 4, 5, 6, 7}, out)
+	for i, tc := range testCases {
+		t.Run(fmt.Sprintf("[%d]", i), func(t *testing.T) {
+			in := []int{1, 2, 3, 4, 5, 6}
+			out = []int(nil)
 
-	errs = gotils.ParellelFor(ctx, in, 4, func(ctx context.Context, i int, n int) error {
-		if n%2 == 0 {
-			return fmt.Errorf("%w: %d", ErrParallelTest, i)
-		}
-		return nil
-	})
+			errs := gotils.ParellelFor(tc.ctx, in, 4, tc.fn)
 
-	assert.Len(t, errs, 3)
-	for _, err := range errs {
-		assert.ErrorIs(t, err, ErrParallelTest)
+			sort.Ints(out)
+			assert.Equal(t, tc.expectedErrs, errs)
+			assert.Equal(t, tc.expectedOut, out)
+		})
 	}
 }
 
 func TestParellelMap(t *testing.T) {
-	var res []gotils.Result[int]
+	canceled, cancel := context.WithCancel(context.Background())
+	cancel()
 
-	in := []int{1, 2, 3, 4, 5, 6}
-	ctx := context.Background()
+	testCases := []struct {
+		ctx      context.Context
+		fn       func(ctx context.Context, i int, n int) (int, error)
+		expected []gotils.Result[int]
+	}{
+		{
+			ctx: context.Background(),
+			fn: func(ctx context.Context, i int, n int) (int, error) {
+				return n + 1, nil
+			},
+			expected: []gotils.Result[int]{
+				{2, nil},
+				{3, nil},
+				{4, nil},
+				{5, nil},
+				{6, nil},
+				{7, nil},
+			},
+		},
+		{
+			ctx: context.Background(),
+			fn: func(ctx context.Context, i int, n int) (int, error) {
+				if n%2 == 0 {
+					return 0, fmt.Errorf("%w: %d/%d", ErrParallelTest, i, n)
+				}
+				return n, nil
+			},
+			expected: []gotils.Result[int]{
+				{1, nil},
+				{0, fmt.Errorf("%w: %d/%d", ErrParallelTest, 1, 2)},
+				{3, nil},
+				{0, fmt.Errorf("%w: %d/%d", ErrParallelTest, 3, 4)},
+				{5, nil},
+				{0, fmt.Errorf("%w: %d/%d", ErrParallelTest, 5, 6)},
+			},
+		},
+		{
+			ctx: canceled,
+			fn: func(ctx context.Context, i int, n int) (int, error) {
+				return n + 1, nil
+			},
+			expected: []gotils.Result[int]{
+				{0, context.Canceled},
+				{0, context.Canceled},
+				{0, context.Canceled},
+				{0, context.Canceled},
+				{0, context.Canceled},
+				{0, context.Canceled},
+			},
+		},
+	}
 
-	res = gotils.ParellelMap(ctx, in, 4, func(ctx context.Context, i int, n int) (int, error) {
-		return n + 1, nil
-	})
+	for i, tc := range testCases {
+		t.Run(fmt.Sprintf("[%d]", i), func(t *testing.T) {
+			in := []int{1, 2, 3, 4, 5, 6}
+			res := gotils.ParellelMap(tc.ctx, in, 4, tc.fn)
 
-	assert.Equal(t, []gotils.Result[int]{
-		{2, nil},
-		{3, nil},
-		{4, nil},
-		{5, nil},
-		{6, nil},
-		{7, nil},
-	}, res)
-
-	res = gotils.ParellelMap(ctx, in, 4, func(ctx context.Context, i int, n int) (int, error) {
-		if n%2 == 0 {
-			return 0, fmt.Errorf("%w: %d/%d", ErrParallelTest, i, n)
-		}
-		return n, nil
-	})
-
-	assert.Equal(t, []gotils.Result[int]{
-		{1, nil},
-		{0, fmt.Errorf("%w: %d/%d", ErrParallelTest, 1, 2)},
-		{3, nil},
-		{0, fmt.Errorf("%w: %d/%d", ErrParallelTest, 3, 4)},
-		{5, nil},
-		{0, fmt.Errorf("%w: %d/%d", ErrParallelTest, 5, 6)},
-	}, res)
+			assert.Equal(t, tc.expected, res)
+		})
+	}
 }

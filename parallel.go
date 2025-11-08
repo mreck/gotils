@@ -26,30 +26,30 @@ func ParellelFor[T any](ctx context.Context, values []T, coroutines int, fn func
 			defer wg.Done()
 
 			for {
-				select {
-				case <-ctx.Done():
+				msg, ok := <-dataC
+				if !ok {
+					return
+				}
+
+				err := ctx.Err()
+				if err != nil {
 					m.Lock()
 					errs = append(errs, ctx.Err())
 					m.Unlock()
-					return
+					continue
+				}
 
-				case msg, ok := <-dataC:
-					if !ok {
-						return
-					}
-					err := fn(ctx, msg.idx, msg.val)
-					if err != nil {
-						m.Lock()
-						errs = append(errs, err)
-						m.Unlock()
-					}
+				err = fn(ctx, msg.idx, msg.val)
+				if err != nil {
+					m.Lock()
+					errs = append(errs, err)
+					m.Unlock()
 				}
 			}
 		}()
 	}
 
 	for i, d := range values {
-		// @TODO: Check if the context is done.
 		dataC <- dataT{i, d}
 	}
 
@@ -90,6 +90,7 @@ func ParellelMap[T any, R any](ctx context.Context, values []T, coroutines int, 
 					m.Lock()
 					result[msg.idx].Err = err
 					m.Unlock()
+					continue
 				}
 
 				val, err := fn(ctx, msg.idx, msg.val)
@@ -102,7 +103,6 @@ func ParellelMap[T any, R any](ctx context.Context, values []T, coroutines int, 
 	}
 
 	for i, d := range values {
-		// @TODO: Check if the context is done.
 		dataC <- dataT{i, d}
 	}
 
