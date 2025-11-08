@@ -13,8 +13,8 @@ func ParellelFor[T any](ctx context.Context, values []T, coroutines int, fn func
 	}
 
 	var (
-		wg    sync.WaitGroup
 		m     sync.Mutex
+		wg    sync.WaitGroup
 		errs  []error
 		dataC = make(chan dataT)
 	)
@@ -60,79 +60,54 @@ func ParellelFor[T any](ctx context.Context, values []T, coroutines int, fn func
 }
 
 // ParellelMap maps over the slice in parallel using Goroutines.
-func ParellelMap[T any, R any](ctx context.Context, values []T, coroutines int, fn func(context.Context, int, T) (R, error)) ([]R, []error) {
+func ParellelMap[T any, R any](ctx context.Context, values []T, coroutines int, fn func(context.Context, int, T) (R, error)) []Result[R] {
 	type dataT struct {
 		idx int
 		val T
 	}
 
-	type resultT struct {
-		idx int
-		res R
-		err error
-	}
-
-	valC := make(chan dataT)
-	resC := make(chan resultT)
-
-	var wgData sync.WaitGroup
+	var (
+		m      sync.Mutex
+		wg     sync.WaitGroup
+		result = make([]Result[R], len(values))
+		dataC  = make(chan dataT)
+	)
 
 	for range coroutines {
-		wgData.Add(1)
+		wg.Add(1)
 
 		go func() {
-			defer wgData.Done()
+			defer wg.Done()
 
 			for {
-				select {
-				case <-ctx.Done():
-					// @TODO: handle properly
+				msg, ok := <-dataC
+				if !ok {
 					return
-				case msg, ok := <-valC:
-					if !ok {
-						return
-					}
-					res, err := fn(ctx, msg.idx, msg.val)
-					resC <- resultT{msg.idx, res, err}
 				}
+
+				err := ctx.Err()
+				if err != nil {
+					m.Lock()
+					result[msg.idx].Err = err
+					m.Unlock()
+				}
+
+				val, err := fn(ctx, msg.idx, msg.val)
+				m.Lock()
+				result[msg.idx].Value = val
+				result[msg.idx].Err = err
+				m.Unlock()
 			}
 		}()
 	}
 
-	result := make([]R, len(values))
-	var errs []error
-	var wgRes sync.WaitGroup
-
-	wgRes.Add(1)
-	go func() {
-		defer wgRes.Done()
-
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case msg, ok := <-resC:
-				if !ok {
-					return
-				}
-				if msg.err != nil {
-					errs = append(errs, msg.err)
-				}
-				result[msg.idx] = msg.res
-			}
-		}
-	}()
-
 	for i, d := range values {
 		// @TODO: Check if the context is done.
-		valC <- dataT{i, d}
+		dataC <- dataT{i, d}
 	}
 
-	close(valC)
-	wgData.Wait()
+	close(dataC)
+	wg.Wait()
 
-	close(resC)
-	wgRes.Wait()
-
-	return result, errs
+	return result
 }

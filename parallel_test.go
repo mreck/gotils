@@ -50,29 +50,37 @@ func TestParallelFor(t *testing.T) {
 }
 
 func TestParellelMap(t *testing.T) {
-	var out []int
-	var errs []error
+	var res []gotils.Result[int]
 
 	in := []int{1, 2, 3, 4, 5, 6}
 	ctx := context.Background()
 
-	out, errs = gotils.ParellelMap(ctx, in, 4, func(ctx context.Context, i int, n int) (int, error) {
+	res = gotils.ParellelMap(ctx, in, 4, func(ctx context.Context, i int, n int) (int, error) {
 		return n + 1, nil
 	})
 
-	assert.Equal(t, []int{2, 3, 4, 5, 6, 7}, out)
-	assert.Nil(t, errs)
+	assert.Equal(t, []gotils.Result[int]{
+		{2, nil},
+		{3, nil},
+		{4, nil},
+		{5, nil},
+		{6, nil},
+		{7, nil},
+	}, res)
 
-	out, errs = gotils.ParellelMap(ctx, in, 4, func(ctx context.Context, i int, n int) (int, error) {
+	res = gotils.ParellelMap(ctx, in, 4, func(ctx context.Context, i int, n int) (int, error) {
 		if n%2 == 0 {
-			return 0, fmt.Errorf("%w: %d", ErrParallelTest, i)
+			return 0, fmt.Errorf("%w: %d/%d", ErrParallelTest, i, n)
 		}
 		return n, nil
 	})
 
-	assert.Equal(t, []int{1, 0, 3, 0, 5, 0}, out)
-	assert.Len(t, errs, 3)
-	for _, err := range errs {
-		assert.ErrorIs(t, err, ErrParallelTest)
-	}
+	assert.Equal(t, []gotils.Result[int]{
+		{1, nil},
+		{0, fmt.Errorf("%w: %d/%d", ErrParallelTest, 1, 2)},
+		{3, nil},
+		{0, fmt.Errorf("%w: %d/%d", ErrParallelTest, 3, 4)},
+		{5, nil},
+		{0, fmt.Errorf("%w: %d/%d", ErrParallelTest, 5, 6)},
+	}, res)
 }
