@@ -12,62 +12,49 @@ func ParellelFor[T any](ctx context.Context, values []T, coroutines int, fn func
 		val T
 	}
 
-	valC := make(chan dataT)
-	errC := make(chan error)
-
-	var wgData sync.WaitGroup
+	var (
+		wg    sync.WaitGroup
+		m     sync.Mutex
+		errs  []error
+		dataC = make(chan dataT)
+	)
 
 	for range coroutines {
-		wgData.Add(1)
+		wg.Add(1)
 
 		go func() {
-			defer wgData.Done()
+			defer wg.Done()
 
 			for {
 				select {
 				case <-ctx.Done():
-					errC <- ctx.Err()
+					m.Lock()
+					errs = append(errs, ctx.Err())
+					m.Unlock()
 					return
-				case msg, ok := <-valC:
+
+				case msg, ok := <-dataC:
 					if !ok {
 						return
 					}
 					err := fn(ctx, msg.idx, msg.val)
 					if err != nil {
-						errC <- err
+						m.Lock()
+						errs = append(errs, err)
+						m.Unlock()
 					}
 				}
 			}
 		}()
 	}
 
-	var errs []error
-	var wgErr sync.WaitGroup
-
-	wgErr.Add(1)
-	go func() {
-		defer wgErr.Done()
-		for {
-			err, ok := <-errC
-			if !ok {
-				return
-			}
-			if err != nil {
-				errs = append(errs, err)
-			}
-		}
-	}()
-
 	for i, d := range values {
 		// @TODO: Check if the context is done.
-		valC <- dataT{i, d}
+		dataC <- dataT{i, d}
 	}
 
-	close(valC)
-	wgData.Wait()
-
-	close(errC)
-	wgErr.Wait()
+	close(dataC)
+	wg.Wait()
 
 	return errs
 }
