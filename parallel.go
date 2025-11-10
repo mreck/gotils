@@ -5,8 +5,8 @@ import (
 	"sync"
 )
 
-// ParellelFor iterates over the slice in parallel using Goroutines.
-func ParellelFor[T any](ctx context.Context, values []T, coroutines int, fn func(context.Context, int, T) error) []error {
+// ParallelFor iterates over the slice in parallel using Goroutines.
+func ParallelFor[T any](ctx context.Context, values []T, coroutines int, fn func(context.Context, int, T) error) []error {
 	type dataT struct {
 		idx int
 		val T
@@ -59,8 +59,8 @@ func ParellelFor[T any](ctx context.Context, values []T, coroutines int, fn func
 	return errs
 }
 
-// ParellelMap maps over the slice in parallel using Goroutines.
-func ParellelMap[T any, R any](ctx context.Context, values []T, coroutines int, fn func(context.Context, int, T) (R, error)) []Result[R] {
+// ParallelMap maps over the slice in parallel using Goroutines.
+func ParallelMap[T any, R any](ctx context.Context, values []T, coroutines int, fn func(context.Context, int, T) (R, error)) []Result[R] {
 	type dataT struct {
 		idx int
 		val T

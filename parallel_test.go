@@ -17,7 +17,7 @@ var (
 	ErrParallelTest = errors.New("test")
 )
 
-func TestParallelFor(t *testing.T) {
+func Test_ParallelFor(t *testing.T) {
 	var (
 		out []int
 		m   sync.Mutex
@@ -86,7 +86,7 @@ func TestParallelFor(t *testing.T) {
 			in := []int{1, 2, 3, 4, 5, 6}
 			out = []int(nil)
 
-			errs := gotils.ParellelFor(tc.ctx, in, 4, tc.fn)
+			errs := gotils.ParallelFor(tc.ctx, in, 4, tc.fn)
 
 			sort.Ints(out)
 			assert.Equal(t, tc.expectedErrs, errs)
@@ -95,7 +95,7 @@ func TestParallelFor(t *testing.T) {
 	}
 }
 
-func TestParellelMap(t *testing.T) {
+func Test_ParallelMap(t *testing.T) {
 	canceled, cancel := context.WithCancel(context.Background())
 	cancel()
 
@@ -154,7 +154,7 @@ func TestParellelMap(t *testing.T) {
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("[%d]", i), func(t *testing.T) {
 			in := []int{1, 2, 3, 4, 5, 6}
-			res := gotils.ParellelMap(tc.ctx, in, 4, tc.fn)
+			res := gotils.ParallelMap(tc.ctx, in, 4, tc.fn)
 
 			assert.Equal(t, tc.expected, res)
 		})
