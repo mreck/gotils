@@ -111,3 +111,5 @@ func ParallelMap[T any, R any](ctx context.Context, values []T, coroutines int, 
 
 	return result
 }
+
+// @TODO: ParallelReduce

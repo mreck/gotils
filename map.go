@@ -28,8 +28,6 @@ func CopyMap[K comparable, V any](src map[K]V) map[K]V {
 
 func ExtendMap[K comparable, V any](dst map[K]V, srcs ...map[K]V) {
 	for _, src := range srcs {
-		for k, v := range src {
-			dst[k] = v
-		}
+		maps.Copy(dst, src)
 	}
 }
